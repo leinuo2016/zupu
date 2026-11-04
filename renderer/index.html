@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
+    <title>族谱</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23a4342c'/%3E%3Ctext x='32' y='45' font-size='38' font-family='serif' fill='%23fff8f2' text-anchor='middle'%3E谱%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <!-- 后端没连上时的横幅。不写这句话的话，所有按钮点了只会弹「Failed to fetch」，
+         用户根本不知道是「服务窗口被关了」还是「软件坏了」。 -->
+    <div id="offlineBar" hidden>
+      <span id="offlineText">连不上本地服务</span>
+      <button id="offlineRetry" class="btn btn-sm">重试</button>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="seal">谱</span>
+        <div class="brand-text">
+          <h1 id="clanName">族谱</h1>
+          <p id="clanMeta">加载中…</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnExport" class="btn">导出本支</button>
+        <button id="btnImport" class="btn btn-primary">导入记谱包</button>
+        <span class="divider"></span>
+        <button id="btnAddChild" class="btn btn-ghost">＋ 子嗣</button>
+        <button id="btnAddSpouse" class="btn btn-ghost">＋ 配偶</button>
+        <button id="btnOrient" class="btn btn-ghost" title="切换纵向 / 横向布局">布局：纵向</button>
+        <button id="btnRoot" class="btn btn-ghost">全谱</button>
+      </div>
+
+      <div class="zoombar">
+        <button id="btnZoomOut" class="icon-btn" title="缩小">−</button>
+        <span id="zoomLabel">100%</span>
+        <button id="btnZoomIn" class="icon-btn" title="放大">＋</button>
+        <button id="btnFit" class="icon-btn" title="适应窗口">⤢</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="canvas-wrap">
+        <canvas id="tree"></canvas>
+        <div id="treeEmpty" class="empty-hint" hidden>
+          <p>还没有人物</p>
+          <p class="muted">点右上角「＋ 子嗣」开始录入</p>
+        </div>
+        <div class="canvas-tip">
+          拖拽平移 · 滚轮缩放 · 单击选中 · 双击编辑
+        </div>
+      </section>
+
+      <aside class="panel" id="panel">
+        <div id="panelEmpty" class="panel-empty">
+          <div class="panel-empty-icon">谱</div>
+          <p>在左侧世系图中点选一个人物</p>
+          <p class="muted">可查看与编辑档案、增补子嗣、导出该支</p>
+        </div>
+
+        <div id="panelBody" hidden>
+          <div class="person-head">
+            <div class="photo-wrap">
+              <img id="photoImg" hidden alt="人物照片" title="点击放大" />
+              <div id="photoEmpty" class="photo-empty">无照片</div>
+            </div>
+            <div>
+              <h2 id="pName">—</h2>
+              <p id="pMeta" class="muted">—</p>
+              <div class="photo-actions">
+                <label class="link-btn" for="photoFile" title="选一张图片（png/jpg，超过 500KB 自动压缩）">上传照片</label>
+                <input id="photoFile" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden />
+                <button id="photoDownload" class="link-btn" hidden>下载</button>
+                <button id="photoRemove" class="link-btn danger-link" hidden>移除</button>
+              </div>
+            </div>
+            <button id="btnDelete" class="icon-btn danger" title="删除此人">✕</button>
+          </div>
+
+          <form id="personForm" class="form" autocomplete="off">
+            <div class="row">
+              <label class="field">
+                <span>姓</span>
+                <input id="fSurname" type="text" placeholder="张" />
+              </label>
+              <label class="field">
+                <span>名</span>
+                <input id="fGiven" type="text" placeholder="德昌" />
+              </label>
+            </div>
+
+            <div class="row">
+              <label class="field">
+                <span>字辈</span>
+                <input id="fGenChar" type="text" placeholder="如：德" />
+              </label>
+              <label class="field">
+                <span>性别</span>
+                <select id="fGender">
+                  <option value="1">男</option>
+                  <option value="2">女</option>
+                  <option value="0">未记</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>状态</span>
+                <select id="fAlive">
+                  <option value="1">在世</option>
+                  <option value="0">已故</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="row">
+              <label class="field field-narrow">
+                <span>生年（公元）</span>
+                <input id="fBirthYear" type="number" inputmode="numeric" placeholder="如 1735" min="-999" max="2999" />
+              </label>
+              <label class="field field-narrow">
+                <span>生年干支</span>
+                <input id="fBirthGz" type="text" maxlength="2" placeholder="如 乙卯" />
+              </label>
+            </div>
+            <label class="field">
+              <span>生（原文，照老谱抄）</span>
+              <input id="fBirth" type="text" placeholder="乾隆壬寅 / 1952-03" />
+            </label>
+
+            <div class="row">
+              <label class="field field-narrow">
+                <span>卒年（公元）</span>
+                <input id="fDeathYear" type="number" inputmode="numeric" placeholder="如 1790" min="-999" max="2999" />
+              </label>
+              <label class="field field-narrow">
+                <span>卒年干支</span>
+                <input id="fDeathGz" type="text" maxlength="2" placeholder="如 庚戌" />
+              </label>
+            </div>
+            <label class="field">
+              <span>卒（原文，照老谱抄）</span>
+              <input id="fDeath" type="text" placeholder="失考" />
+            </label>
+
+            <div class="row">
+              <label class="field">
+                <span>葬地</span>
+                <input id="fBurial" type="text" placeholder="村南祖茔" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>备注</span>
+              <textarea id="fNote" rows="3" placeholder="事迹、迁徙、异名等"></textarea>
+            </label>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+              <span id="saveHint" class="muted"></span>
+            </div>
+          </form>
+
+          <div class="section">
+            <div class="section-head">
+              <h3>子嗣 <span id="childCount" class="pill">0</span></h3>
+              <button id="btnAddChild2" class="link-btn">＋ 新增</button>
+            </div>
+            <ul id="childList" class="chip-list"></ul>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <h3>配偶 <span id="spouseCount" class="pill">0</span></h3>
+              <button id="btnAddSpouse2" class="link-btn">＋ 新增</button>
+            </div>
+            <ul id="spouseList" class="chip-list"></ul>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>父母</h3></div>
+            <ul id="parentList" class="chip-list"></ul>
+          </div>
+
+          <div class="section" id="exportSection">
+            <button id="btnExportBranch" class="btn btn-block">导出「<span id="exportName">—</span>」这一支</button>
+            <p class="hint">导出内容：此人及其全部后代，连同他们的配偶</p>
+            <button id="btnFocusRoot" class="btn btn-ghost btn-block" style="margin-top: 10px">
+              只看这一支
+            </button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="statusbar">
+      <span id="statusLeft">就绪</span>
+      <span class="spacer"></span>
+      <span id="statusBatch" class="muted"></span>
+      <button id="btnBatches" class="link-btn">导入记录</button>
+      <button id="btnBackup" class="link-btn">立即备份</button>
+    </footer>
+
+    <!-- 删除确认：先把「会失去谁」摆出来，再让人点 -->
+    <div class="modal-mask" id="deleteMask" hidden>
+      <div class="modal modal-sm" role="dialog" aria-modal="true">
+        <h2>删除「<span id="delName">—</span>」</h2>
+        <p class="muted" id="delMeta">—</p>
+        <div class="warn-box" id="delList"></div>
+        <label class="check-line">
+          <input type="checkbox" id="delConfirm" />
+          <span>我确认以上内容无误，执行删除</span>
+        </label>
+        <p class="hint">
+          删除是软删除：数据仍在库里、可追溯，但谱上不再显示。删错了只能靠备份文件恢复，请谨慎。
+        </p>
+        <div class="modal-actions">
+          <button class="btn" id="delCancel">取消</button>
+          <button class="btn btn-danger" id="delOk" disabled>确认删除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 迷你表单：新增子嗣 / 配偶 -->
+    <div class="modal-mask" id="miniMask" hidden>
+      <div class="modal modal-sm" role="dialog" aria-modal="true">
+        <h2 id="miniTitle">新增</h2>
+        <p class="muted" id="miniHint"></p>
+        <div class="form">
+          <div class="row">
+            <label class="field">
+              <span>姓</span>
+              <input id="miniSurname" type="text" />
+            </label>
+            <label class="field">
+              <span>名</span>
+              <input id="miniGiven" type="text" placeholder="谱名" />
+            </label>
+          </div>
+          <div class="row">
+            <label class="field">
+              <span>性别</span>
+              <select id="miniGender">
+                <option value="1">男</option>
+                <option value="2">女</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>生（原文）</span>
+              <input id="miniBirth" type="text" placeholder="1980 / 乾隆壬寅" />
+            </label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" id="miniCancel">取消</button>
+          <button class="btn btn-primary" id="miniOk">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导出 -->
+    <div class="modal-mask" id="exportMask" hidden>
+      <div class="modal" role="dialog" aria-modal="true">
+        <h2>导出「<span id="expWho">—</span>」这一支</h2>
+        <p class="muted" id="expMeta">—</p>
+
+        <div class="form">
+          <label class="field">
+            <span>导出格式</span>
+            <select id="expFormat">
+              <option value="zupu">记谱包 .zupu（给另一台电脑导入）</option>
+              <option value="xlsx">Excel 表格 .xlsx（全部字段，可核对）</option>
+              <option value="png">PNG 图片（世系图，发微信/存档）</option>
+              <option value="pdf">PDF 图页（可打印，单页）</option>
+            </select>
+          </label>
+
+          <div class="row" id="expRowImage" hidden>
+            <label class="field">
+              <span>纸张（PDF）</span>
+              <select id="expPaper">
+                <option value="a4">A4 横向</option>
+                <option value="a3" selected>A3 横向</option>
+                <option value="a2">A2 横向</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>清晰度</span>
+              <select id="expScale">
+                <option value="2">标准 2×</option>
+                <option value="3" selected>高清 3×</option>
+                <option value="4">印刷 4×</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field" id="expRowRemark">
+            <span>说明（随包带给对方，可留空）</span>
+            <textarea id="expRemark" rows="2" placeholder="如：补齐了大房三至五世生卒"></textarea>
+          </label>
+
+          <div class="field" id="expRowDir">
+            <span>保存位置</span>
+            <div class="dir-line" id="expDirLine">
+              <span class="dir-path" id="expDirText">—</span>
+              <button type="button" class="link-btn" id="expChangeDir">更改…</button>
+            </div>
+            <p class="hint" id="expDirHint"></p>
+          </div>
+        </div>
+
+        <p class="hint" id="expHint"></p>
+
+        <div class="done-box" id="expResult" hidden>
+          <div class="done-head" id="expResultHead">已导出</div>
+          <p class="path-line" id="expResultPath"></p>
+          <p class="path-line" id="expResultAlt" hidden></p>
+          <button class="link-btn" id="expOpenFolder" hidden>打开所在文件夹</button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="expCancel">取消</button>
+          <button class="btn btn-primary" id="expOk">导出</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导入向导 -->
+    <div class="modal-mask" id="importMask" hidden>
+      <div class="modal modal-lg" role="dialog" aria-modal="true">
+        <div class="wizard-head">
+          <h2>导入记谱包</h2>
+          <ol class="steps" id="wizardSteps">
+            <li data-step="1" class="active">1 选包与锚点</li>
+            <li data-step="2">2 预检</li>
+            <li data-step="3">3 执行</li>
+          </ol>
+        </div>
+
+        <!-- 步骤 1 -->
+        <div class="wizard-body" data-step="1">
+          <div class="anchor-box" id="anchorBox">
+            <div class="anchor-label">将要用包内内容替换的本地节点（锚点）</div>
+            <div class="anchor-name" id="anchorName">未选中</div>
+            <div class="anchor-sub muted" id="anchorSub">请先在左侧世系图中点选一个节点</div>
+          </div>
+
+          <div class="pkg-box" id="pkgBox" hidden>
+            <div class="pkg-row"><span>来自</span><b id="pkgFrom">—</b></div>
+            <div class="pkg-row"><span>导出时间</span><b id="pkgTime">—</b></div>
+            <div class="pkg-row"><span>包内根节点</span><b id="pkgRoot">—</b></div>
+            <div class="pkg-row"><span>人数</span><b id="pkgCount">—</b></div>
+            <div class="pkg-row" id="pkgRemarkRow" hidden><span>说明</span><b id="pkgRemark">—</b></div>
+          </div>
+
+          <p class="warn-text" id="wizardWarn1" hidden></p>
+        </div>
+
+        <!-- 步骤 2 -->
+        <div class="wizard-body" data-step="2" hidden>
+          <div class="stat-grid" id="previewStats"></div>
+          <div id="previewWarnings" class="warn-list"></div>
+          <div class="collapse" id="localOnlyBox">
+            <button class="collapse-head" id="localOnlyToggle">
+              <span>将被删除的本地独有人物 <span class="pill danger" id="localOnlyCount">0</span></span>
+              <span class="chev">▾</span>
+            </button>
+            <ul class="collapse-body" id="localOnlyList"></ul>
+          </div>
+          <p class="hint">
+            替换后，锚点及其全部后代的内容将与包内完全一致。执行前会自动备份一次数据库。
+          </p>
+        </div>
+
+        <!-- 步骤 3 -->
+        <div class="wizard-body" data-step="3" hidden>
+          <div id="confirmBox">
+            <p class="danger-text">
+              这是不可逆的结构性变更。确认请输入锚点姓名
+              <b id="confirmName"></b>
+              以继续。
+            </p>
+            <input id="confirmInput" type="text" class="confirm-input" placeholder="输入姓名后点「执行替换」" />
+          </div>
+
+          <div id="doneBox" hidden>
+            <div class="done-head">导入完成</div>
+            <div class="stat-grid" id="doneStats"></div>
+            <p class="muted" id="backupPath"></p>
+            <div class="modal-actions left">
+              <button class="btn" id="btnUndoNow">撤销这次导入</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="wizardCancel">取消</button>
+          <button class="btn" id="wizardChoose">选择记谱包…</button>
+          <button class="btn btn-primary" id="wizardNext" disabled>下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导入记录 -->
+    <div class="modal-mask" id="batchesMask" hidden>
+      <div class="modal modal-lg" role="dialog" aria-modal="true">
+        <h2>导入记录</h2>
+        <p class="muted">每次导入都留一条记录，可撤销；撤销只回滚该次导入，不影响之后的其它录入。</p>
+        <ul class="batch-list" id="batchList"></ul>
+        <div class="modal-actions">
+          <button class="btn" id="batchesClose">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="ganzhi.js"></script>
+    <script src="api-client.js"></script>
+    <script src="tree.js"></script>
+    <script src="pdf-lite.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.local/zupu/package-1.json",
+  "title": "记谱包 .zupu 内部结构",
+  "description": "文件后缀 .zupu，本质为 zip。解包后需包含 manifest.json 与 family.json，attachments/ 可选。",
+  "type": "object",
+  "required": ["manifest", "family"],
+  "properties": {
+    "manifest": { "$ref": "#/definitions/manifest" },
+    "family": { "$ref": "#/definitions/family" }
+  },
+
+  "definitions": {
+    "manifest": {
+      "type": "object",
+      "required": ["format_version", "package_id", "device_id", "exported_at", "root_uuid"],
+      "properties": {
+        "format_version": { "type": "integer", "const": 1, "description": "格式版本，升级时用于兼容判断" },
+        "package_id": { "type": "string", "description": "本包的全局唯一 ID（UUIDv4），用于识别「是否同一份包重复导入」" },
+        "app_version": { "type": "string", "description": "导出该包的软件版本" },
+        "device_id": { "type": "string", "description": "导出机器的标识" },
+        "device_label": { "type": "string", "description": "人看得懂的机器名，如「二房-小明家」，导入时展示给用户" },
+        "exported_at": { "type": "string", "format": "date-time" },
+        "root_uuid": { "type": "string", "description": "本包导出的子树根节点。导入时它将成为替换后新锚点的 UUID" },
+        "root_name": { "type": "string", "description": "根节点姓名，用于导入向导展示「这支的祖先是德昌公」" },
+        "mode": { "type": "string", "enum": ["subtree", "full"], "description": "subtree=只导一支；full=全谱" },
+        "counts": {
+          "type": "object",
+          "properties": {
+            "person": { "type": "integer" },
+            "person_name": { "type": "integer" },
+            "person_union": { "type": "integer" },
+            "parent_child": { "type": "integer" },
+            "person_event": { "type": "integer" }
+          }
+        },
+        "remark": { "type": "string", "description": "导出人填写的说明，如「补录三房 1949 年后出生人口」" }
+      }
+    },
+
+    "family": {
+      "type": "object",
+      "required": ["person", "parent_child"],
+      "properties": {
+        "person": { "type": "array", "items": { "$ref": "#/definitions/person" } },
+        "person_name": { "type": "array", "items": { "$ref": "#/definitions/person_name" } },
+        "person_union": { "type": "array", "items": { "$ref": "#/definitions/person_union" } },
+        "parent_child": { "type": "array", "items": { "$ref": "#/definitions/parent_child" } },
+        "person_event": { "type": "array", "items": { "$ref": "#/definitions/person_event" } }
+      }
+    },
+
+    "audit": {
+      "type": "object",
+      "required": ["uuid", "device_id", "created_at", "updated_at", "rev", "deleted"],
+      "properties": {
+        "uuid": { "type": "string", "minLength": 8, "description": "UUIDv4，必须全局唯一。导出时原样带上，导入时原样沿用，绝不重新生成" },
+        "device_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "rev": { "type": "integer", "minimum": 1 },
+        "deleted": { "type": "integer", "enum": [0, 1], "description": "软删除标记。整段替换时旧数据置 1 而非物理删除" }
+      }
+    },
+
+    "person": {
+      "allOf": [{ "$ref": "#/definitions/audit" }],
+      "type": "object",
+      "required": ["uuid"],
+      "properties": {
+        "branch_id": { "type": ["string", "null"] },
+        "gen": { "type": ["integer", "null"], "description": "代次。导入后会被强制重算，此处仅作参考" },
+        "gender": { "type": "integer", "enum": [0, 1, 2] },
+        "alive": { "type": "integer", "enum": [0, 1] },
+        "surname": { "type": ["string", "null"] },
+        "given_name": { "type": ["string", "null"] },
+        "gen_char": { "type": ["string", "null"], "description": "字辈用字" },
+        "note": { "type": ["string", "null"] }
+      }
+    },
+
+    "person_name": {
+      "allOf": [{ "$ref": "#/definitions/audit" }],
+      "type": "object",
+      "required": ["uuid", "person_uuid", "kind", "value"],
+      "properties": {
+        "person_uuid": { "type": "string" },
+        "kind": { "type": "string", "enum": ["谱名", "讳", "字", "号", "乳名", "行第", "谥"] },
+        "value": { "type": "string" },
+        "seq": { "type": "integer" }
+      }
+    },
+
+    "person_union": {
+      "allOf": [{ "$ref": "#/definitions/audit" }],
+      "type": "object",
+      "required": ["uuid"],
+      "properties": {
+        "husband_uuid": { "type": ["string", "null"] },
+        "wife_uuid": { "type": ["string", "null"] },
+        "seq": { "type": "integer", "minimum": 1 },
+        "kind": { "type": ["string", "null"], "enum": ["嫡", "继", "侧", "平", "未知", null] },
+        "status": { "type": ["string", "null"], "enum": ["婚姻", "离异", "丧偶", "未知", null] },
+        "start_text": { "type": ["string", "null"] },
+        "start_year": { "type": ["integer", "null"] },
+        "end_text": { "type": ["string", "null"] },
+        "end_year": { "type": ["integer", "null"] }
+      },
+      "anyOf": [
+        { "required": ["husband_uuid"] },
+        { "required": ["wife_uuid"] }
+      ]
+    },
+
+    "parent_child": {
+      "allOf": [{ "$ref": "#/definitions/audit" }],
+      "type": "object",
+      "required": ["uuid", "parent_uuid", "child_uuid", "kind"],
+      "properties": {
+        "parent_uuid": { "type": "string" },
+        "child_uuid": { "type": "string" },
+        "kind": { "type": "string", "enum": ["生", "嗣", "继", "养", "入赘", "兼祧"] },
+        "seq": { "type": "integer", "minimum": 1, "description": "排行，决定世系图中兄弟的左右顺序" },
+        "is_primary": { "type": "integer", "enum": [0, 1], "description": "兼祧时标记主要归属，分卷印刷时按此归属" }
+      }
+    },
+
+    "person_event": {
+      "allOf": [{ "$ref": "#/definitions/audit" }],
+      "type": "object",
+      "required": ["uuid", "person_uuid", "type"],
+      "properties": {
+        "person_uuid": { "type": "string" },
+        "type": { "type": "string", "enum": ["生", "卒", "葬", "迁", "婚", "功名", "事迹"] },
+        "time_text": { "type": ["string", "null"], "description": "时间原文，如「乾隆壬寅」。永不可丢" },
+        "time_start": { "type": ["integer", "null"] },
+        "time_end": { "type": ["integer", "null"] },
+        "precision": { "type": ["string", "null"], "enum": ["年", "月", "日", "约", "失考", null] },
+        "place": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

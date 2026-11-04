@@ -1,0 +1,1035 @@
+/* ============================================================
+   族谱 · 界面样式
+   基调：宣纸 + 墨 + 朱。字号偏大，按钮偏高——录入的人里有长辈。
+   ============================================================ */
+
+:root {
+  --paper: #f5f2eb;
+  --paper-2: #fffdf8;
+  --paper-3: #efeade;
+  --ink: #221f1b;
+  --ink-2: #57503f;
+  --ink-3: #8a8172;
+  --line: #ddd5c5;
+  --line-2: #ebe5d8;
+  --cinnabar: #a4342c;
+  --cinnabar-2: #c04a40;
+  --cinnabar-soft: #f7e8e4;
+  --jade: #2f6b56;
+  --gold: #b0803a;
+  --shadow-1: 0 1px 2px rgba(40, 32, 20, 0.06), 0 4px 12px rgba(40, 32, 20, 0.06);
+  --shadow-2: 0 12px 40px rgba(40, 32, 20, 0.18);
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* hidden 属性必须真的隐藏：.panel-empty / .empty-hint 用了 display:grid，
+   否则会盖掉浏览器的默认样式，出现「面板同时显示空态和内容」的问题 */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC",
+    "Source Han Sans SC", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  display: grid;
+  grid-template-rows: 76px 1fr 42px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.muted {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+/* ── 顶栏 ───────────────────────────────────────────── */
+
+/* 后端断开时的横幅：朱底白字，占 body 的第一行（不能浮在上面盖住顶栏按钮） */
+#offlineBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  background: var(--cinnabar);
+  color: #fff8f2;
+  font-size: 14px;
+}
+
+/* body 平时是三行（顶栏 / 主体 / 状态栏），横幅出现时多一行 */
+body.offline {
+  grid-template-rows: auto 76px 1fr 42px;
+}
+
+#offlineBar .btn {
+  margin-left: auto;
+  height: 30px;
+  padding: 0 12px;
+  background: #fff8f2;
+  border-color: #fff8f2;
+  color: var(--cinnabar);
+  font-size: 13px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.seal {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: var(--cinnabar);
+  color: #fff8f2;
+  border-radius: 6px;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  box-shadow: 0 2px 6px rgba(164, 52, 44, 0.3);
+}
+
+.brand-text h1 {
+  font-size: 21px;
+  line-height: 1.2;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.brand-text p {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.divider {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  margin: 0 4px;
+}
+
+.zoombar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.zoombar span {
+  min-width: 46px;
+  text-align: center;
+}
+
+/* ── 按钮 ───────────────────────────────────────────── */
+
+.btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  transition: background 0.12s, border-color 0.12s, transform 0.06s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #fbf8f2;
+  border-color: #cfc5b2;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #fff9f4;
+  box-shadow: 0 2px 8px rgba(164, 52, 44, 0.24);
+}
+
+.btn-primary:hover {
+  background: var(--cinnabar-2);
+  border-color: var(--cinnabar-2);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+/* 删除是破坏性操作：实心朱红，与「保存」区分开，避免手滑 */
+.btn-danger {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #fff9f4;
+}
+
+.btn-danger:hover {
+  background: #8f2b24;
+  border-color: #8f2b24;
+}
+
+.btn-danger:disabled {
+  background: #c9a29d;
+  border-color: #c9a29d;
+  box-shadow: none;
+}
+
+/* 删除确认里列出「会失去谁」 */
+.warn-box {
+  background: #fdf4f1;
+  border: 1px solid #f0d6cf;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 14px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.warn-box:empty {
+  display: none;
+}
+
+.warn-title {
+  font-weight: 600;
+  color: var(--cinnabar);
+  margin-bottom: 2px;
+}
+
+.warn-names {
+  word-break: break-all;
+}
+
+.warn-note {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #e6c9c1;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+.check-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.check-line input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--cinnabar);
+  flex: 0 0 auto;
+}
+
+/* 年份这类短字段不用占满一行 */
+.field-narrow {
+  flex: 0 1 46%;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn.danger,
+.icon-btn.danger {
+  color: var(--cinnabar);
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: var(--paper-3);
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--cinnabar);
+  padding: 2px 4px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.link-btn:hover {
+  background: var(--cinnabar-soft);
+}
+
+/* ── 主区 ───────────────────────────────────────────── */
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 384px;
+  min-height: 0;
+}
+
+.canvas-wrap {
+  position: relative;
+  background: var(--paper-2);
+  background-image: radial-gradient(rgba(160, 148, 124, 0.18) 1px, transparent 1px);
+  background-size: 22px 22px;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+}
+
+#tree {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+#tree.dragging {
+  cursor: grabbing;
+}
+
+.canvas-tip {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  font-size: 13px;
+  color: var(--ink-3);
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 4px 12px;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+
+.empty-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 6px;
+  color: var(--ink-2);
+}
+
+/* ── 侧栏 ───────────────────────────────────────────── */
+
+.panel {
+  background: var(--paper-2);
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.panel-empty {
+  height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.panel-empty-icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px dashed var(--line);
+  color: var(--ink-3);
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.person-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+/* ── 人物照片 ─────────────────────────────────────────── */
+
+.photo-wrap {
+  flex: none;
+  width: 72px;
+  height: 96px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(216, 205, 184, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-empty {
+  font-size: 12px;
+  color: var(--ink-3, #a09a8c);
+  letter-spacing: 0.2em;
+}
+
+.photo-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.photo-actions .link-btn {
+  cursor: pointer;
+}
+
+.danger-link {
+  color: var(--cinnabar, #9d3b2c);
+}
+
+/* 看大图：全屏遮罩 */
+#photoLight {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  background: rgba(30, 24, 16, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+
+#photoLight img {
+  max-width: 90vw;
+  max-height: 88vh;
+  border: 6px solid #f4ead8;
+  border-radius: 4px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+.person-head h2 {
+  font-size: 24px;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  letter-spacing: 0.06em;
+}
+
+/* ── 表单 ───────────────────────────────────────────── */
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.field textarea {
+  height: auto;
+  padding: 8px 10px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--cinnabar-2);
+  box-shadow: 0 0 0 3px rgba(192, 74, 64, 0.12);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* ── 分节 / 列表 ────────────────────────────────────── */
+
+.section {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-2);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-head h3 {
+  font-size: 15px;
+  color: var(--ink-2);
+  letter-spacing: 0.06em;
+}
+
+.pill {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  background: var(--paper-3);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 19px;
+}
+
+.pill.danger {
+  background: var(--cinnabar-soft);
+  color: var(--cinnabar);
+}
+
+.chip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--paper-3);
+  border: 1px solid var(--line-2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.chip-list li:hover {
+  background: #fff;
+  border-color: #cfc5b2;
+}
+
+.chip-list li.empty {
+  background: none;
+  border: 1px dashed var(--line);
+  color: var(--ink-3);
+  cursor: default;
+}
+
+.chip-kind {
+  font-size: 12px;
+  color: var(--cinnabar);
+  border: 1px solid var(--cinnabar-soft);
+  background: var(--cinnabar-soft);
+  border-radius: 4px;
+  padding: 0 4px;
+  line-height: 16px;
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* ── 状态栏 ─────────────────────────────────────────── */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  background: var(--paper-2);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.statusbar .spacer {
+  flex: 1;
+}
+
+/* ── 弹层 ───────────────────────────────────────────── */
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(38, 31, 22, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+
+.modal-mask[hidden] {
+  display: none;
+}
+
+.modal {
+  background: var(--paper-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow-2);
+  padding: 24px;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  animation: pop 0.16s ease-out;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+.modal-sm {
+  width: min(460px, 100%);
+}
+
+.modal-lg {
+  width: min(860px, 100%);
+}
+
+.modal h2 {
+  font-size: 20px;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.modal-actions.left {
+  justify-content: flex-start;
+}
+
+/* 导入向导 */
+
+.wizard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.steps {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.steps li {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--paper-3);
+}
+
+.steps li.active {
+  background: var(--cinnabar);
+  color: #fff9f4;
+}
+
+.steps li.done {
+  background: var(--cinnabar-soft);
+  color: var(--cinnabar);
+}
+
+.wizard-body {
+  padding: 20px 0 4px;
+}
+
+.anchor-box {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--paper-3);
+}
+
+.anchor-box.bad {
+  border-color: var(--cinnabar-2);
+  background: var(--cinnabar-soft);
+}
+
+.anchor-label {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.anchor-name {
+  font-size: 20px;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.pkg-box {
+  margin-top: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.pkg-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.pkg-row span {
+  color: var(--ink-3);
+}
+
+.warn-text {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--gold);
+  background: #fdf6e8;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  color: #7a5a1f;
+}
+
+.warn-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.warn-item {
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: #fdf6e8;
+  border-left: 3px solid var(--gold);
+  font-size: 14px;
+  color: #7a5a1f;
+}
+
+.danger-text {
+  color: var(--cinnabar);
+  font-size: 15px;
+}
+
+.confirm-input {
+  width: 100%;
+  height: 44px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.confirm-input:focus {
+  outline: none;
+  border-color: var(--cinnabar);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.stat {
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--paper-3);
+}
+
+.stat b {
+  display: block;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.stat span {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.stat.danger b {
+  color: var(--cinnabar);
+}
+
+.collapse {
+  margin-top: 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.collapse-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--paper-3);
+  border: none;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.collapse-body {
+  list-style: none;
+  margin: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.collapse-body li {
+  background: var(--paper-3);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.done-head {
+  font-size: 18px;
+  color: var(--jade);
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  margin-bottom: 12px;
+}
+
+/* 导出结果的文件路径：长路径必须能断行，否则会把弹窗顶宽 */
+.path-line {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  word-break: break-all;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+/* 保存位置：路径可换行，右侧「更改…」不被挤掉 */
+.dir-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-2, #faf8f3);
+}
+
+.dir-path {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  word-break: break-all;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.dir-line .link-btn {
+  flex: 0 0 auto;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#expDirHint {
+  margin-top: 6px;
+}
+
+/* 格式说明与保存位置说明挨着放，需要和上一段拉开一点 */
+#expHint {
+  margin-top: 10px;
+}
+
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.batch-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.batch-item {
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.batch-item .batch-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.batch-item.reverted {
+  opacity: 0.6;
+}
+
+/* ── 提示条 ─────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
+  background: #2b251d;
+  color: #fdf8f0;
+  padding: 10px 20px;
+  border-radius: 22px;
+  font-size: 14px;
+  box-shadow: var(--shadow-2);
+  z-index: 60;
+  max-width: 70vw;
+  text-align: center;
+  animation: pop 0.16s ease-out;
+}
+
+.toast.error {
+  background: var(--cinnabar);
+}
+
+.toast[hidden] {
+  display: none;
+}

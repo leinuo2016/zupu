@@ -1,0 +1,77 @@
+{
+  "name": "zupu-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "族谱系统 · 离线桌面版（家族自用）",
+  "homepage": "https://github.com/family/zupu",
+  "main": "electron/main.js",
+  "author": "",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dev": "node scripts/dev-server.js",
+    "test": "node test/e2e.js",
+    "reset": "node scripts/reset.js",
+    "postinstall": "electron-builder install-app-deps || echo \"skip electron-builder\"",
+    "dist:win": "electron-builder --win nsis portable",
+    "dist:mac": "electron-builder --mac dmg zip",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:all": "electron-builder --win nsis portable --linux AppImage deb",
+    "dist:dir": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^45.2.2",
+    "electron-builder": "^25.1.8",
+    "puppeteer-core": "^23.11.1"
+  },
+  "build": {
+    "appId": "cn.family.zupu",
+    "productName": "族谱",
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "族谱",
+      "artifactName": "zhupu-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "zhupu-Portable-${version}.exe"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.family",
+      "artifactName": "zhupu-${version}-${arch}.${ext}",
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "artifactName": "zhupu-${version}-${arch}.${ext}",
+      "maintainer": "family"
+    }
+  }
+}
