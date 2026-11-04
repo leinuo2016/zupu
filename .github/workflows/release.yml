@@ -79,3 +79,29 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/latest*.yml
+
+      # 大文件偶发漏传，逐个体检并补传（最多 3 轮）
+      - name: Verify assets and re-upload missing ones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -u
+          TAG="${GITHUB_REF_NAME}"
+          for round in 1 2 3; do
+            missing=0
+            for f in dist/*.exe dist/*.dmg dist/*.zip dist/*.AppImage dist/*.deb dist/latest*.yml; do
+              [ -e "$f" ] || continue
+              name=$(basename "$f")
+              if ! gh release view "$TAG" --json assets -q '.assets[].name' | grep -qx "$name"; then
+                echo "::warning::missing $name, re-uploading (round $round)"
+                gh release upload "$TAG" "$f" --clobber || missing=1
+              fi
+            done
+            if [ "$missing" -eq 0 ]; then
+              echo "all assets present"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::some assets still missing after retries"
+          exit 1
