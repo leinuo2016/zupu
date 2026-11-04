@@ -33,7 +33,7 @@ jobs:
         run: npm ci --ignore-scripts || npm install --ignore-scripts
 
       - name: Build packages
-        run: npx electron-builder ${{ matrix.args }}
+        run: npx electron-builder ${{ matrix.args }} --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
