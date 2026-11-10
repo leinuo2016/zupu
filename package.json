@@ -5,8 +5,8 @@
   "description": "族谱系统 · 离线桌面版（家族自用）",
   "homepage": "https://github.com/leinuo2016/zupu",
   "main": "electron/main.js",
-  "author": "",
-  "license": "UNLICENSED",
+  "author": "leinuo2016",
+  "license": "MIT",
   "scripts": {
     "start": "electron .",
     "dev": "node scripts/dev-server.js",
